@@ -1,0 +1,51 @@
+
+Jankis Duplicate Finder
+=======================
+
+© 2010 Gautier Portet - <kassoulet gmail com>
+
+
+
+What it is about?
+
+  Jankis is a gtk graphical program to find and delete duplicate files.
+
+
+Another one?
+
+  Hum, yes.
+
+
+So what makes Jankis better than the competition?
+
+  Jankis is fast. And I designed it to be powerful and easy to use.
+  It checks only the beginning of the files, and this is perfect to look for
+  corrupted or incomplete files.
+
+
+OK, what's next?
+
+  Do a "chmod +x jankis.py", and run "./jankis.py". No installer yet.
+  Go to the preferences, and choose the minimal file size you want to report.
+  Now you can scan your home folder, the whole filesystem, or any folder you
+  want, just choose the right button.
+
+It's slow!
+
+  You have too much files...
+
+
+What are all those columns for?
+
+  You see for each file its filename, its size, and its MD5 hash.
+  The MD5 hash tells you if the files are identical.
+
+  You can use the "original" button to mark the original files.
+  The "delete" button will... Hum, remove the file.
+  And finally the "link" button will create an hard link to the original file,
+  removing the duplicate file's used space.
+
+
+PLEASE NOTE THAT JANKIS'S JOB IS TO DELETE FILES.
+BE CAREFUL!
+
