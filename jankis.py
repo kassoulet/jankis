@@ -20,7 +20,7 @@ gobject.threads_init()
 import pango
 
 import finder
-from finder import walk, scan, current_file, abort
+from finder import walk, scan, current_file
 from ui import GladeWindow, threaded, humanize_size, append_column
 
 
@@ -114,6 +114,7 @@ class MatchList(object):
         Check the model and desactivate impossible or dangerous actions.
         TODO: only validate when inserting matches. Also, indicate links and
               partial matches.
+              The links can be between any of the files.
         """
         matches = {}
         for i, item in enumerate(self.liststore):
@@ -291,16 +292,16 @@ class JankisWindow(GladeWindow):
         self.status('Enlarging your free disk space...')
         todo = len(deletes) + len(links)
         done = 0.0
-        from time import sleep
         for f in deletes:
             print('delete: %s' % f)
+            os.remove(f)
             done += 1
             self.progressbar.set_fraction(done/todo)
-        for d,s in links:
-            print('link: %s -> %s' % (s,d))
+        for d, s in links:
+            print('link: %s -> %s' % (s, d))
             tmp = d+'-todelete'
-            os.rename(d,tmp)
-            os.link(s,d)
+            os.rename(d, tmp)
+            os.link(s, d)
             os.remove(tmp)
             done += 1
             self.progressbar.set_fraction(done/todo)
@@ -312,7 +313,7 @@ class JankisWindow(GladeWindow):
     def sensitive(self):
         widgets = 'button_scan_home button_scan_filesystem button_scan_folder menubar'.split()
         for w in widgets:
-            getattr(self, w,).set_sensitive(not self.scanning)
+            getattr(self, w, ).set_sensitive(not self.scanning)
         self.button_stop.set_sensitive(self.scanning)
 
     def scan(self, folder):
