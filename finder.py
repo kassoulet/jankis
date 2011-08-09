@@ -22,24 +22,27 @@ BUFFER_SIZE = 64*1024
 current_file = None
 abort = False
 
-def walk(root_folder, minimal_size=-1, follow_links=False,
+def walk(root_folders, minimal_size=-1, follow_links=False,
             blacklist=None, whitelist=None):
     """
     Return an iterator with all files present in a list of files/folders
     """
     global current_file
-    for root, dirs, files in _walk(root_folder, follow_links=follow_links):
-        current_file = root
-        for name in files:
-            filename = os.path.join(root, name)
-            try:
-                filesize = os.path.getsize(filename)
-            except OSError: # invalids files, links, etc...
-                filesize = 0
-            if filesize > minimal_size:
-                yield filename
-            if abort:
-                return
+    for folder in root_folders:
+        #print 'walking:', folder
+        for root, dirs, files in _walk(folder, follow_links=follow_links):
+            #print root
+            current_file = root
+            for name in files:
+                filename = os.path.join(root, name)
+                try:
+                    filesize = os.path.getsize(filename)
+                except OSError: # invalids files, links, etc...
+                    filesize = 0
+                if filesize > minimal_size:
+                    yield filename
+                if abort:
+                    return
     current_file = None
 
 
@@ -111,7 +114,7 @@ class DuplicateFinder:
         self.totalfiles += 1
         self.totalsize += os.path.getsize(filename)
 
-    def process(self, progress_listener=None):
+    def process(self, progress_listener=None, skip_md5=False):
         """
         Check for duplicates.
         """
@@ -132,8 +135,11 @@ class DuplicateFinder:
 
             # reference file
             refname = f[0]
-            refsize = os.path.getsize(refname)
-            refmd5 = get_file_hash(refname)
+            try:
+                refsize = os.path.getsize(refname)
+            except OSError:
+                continue
+            refmd5 = get_file_hash(refname) if not skip_md5 else 'skipped'
             #print '%10d   %s' % (refsize, refname)
             match = []
             match.append([refname, refsize, refmd5])
@@ -143,9 +149,11 @@ class DuplicateFinder:
 
             for filename in f[1:]:
                 # and its copies
-                size = os.path.getsize(filename)
-                md5 = get_file_hash(filename)
-
+                try:
+                    size = os.path.getsize(filename)
+                except OSError:
+                    continue
+                md5 = get_file_hash(filename) if not skip_md5 else 'skipped'
 
                 match.append([filename, size, md5])
 
@@ -169,11 +177,10 @@ class DuplicateFinder:
         return matches
 
 
-def scan(folder, minimal_size, follow_links,
+def scan(folders, minimal_size, follow_links,
         add_file_callback=None, add_match_callback=None):
-    #print 'scanning:', folder, minimal_size, follow_links
     finder = DuplicateFinder()
-    for f in walk(folder, minimal_size, follow_links):
+    for f in walk(folders, minimal_size, follow_links):
         finder.add_file(f)
         if add_file_callback:
             add_file_callback(f)

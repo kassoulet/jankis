@@ -19,7 +19,7 @@ import time
 from optparse import OptionParser
 
 import finder
-from finder import walk, scan, current_file
+from finder import scan, current_file
 
 quiet = False
 

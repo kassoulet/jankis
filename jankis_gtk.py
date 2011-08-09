@@ -262,13 +262,13 @@ class JankisWindow(GladeWindow):
         """
         Scan home folder.
         """
-        self.scan(os.path.expanduser('~'))
+        self.scan([os.path.expanduser('~')])
 
     def on_button_scan_filesystem_clicked(self, *args):
         """
         Scan whole filesystem.
         """
-        self.scan('/')
+        self.scan(['/'])
 
     def on_button_scan_folder_clicked(self, *args):
         """
@@ -277,8 +277,8 @@ class JankisWindow(GladeWindow):
         response = self.folderchooserdialog.run()
         self.folderchooserdialog.hide()
         if response:
-            for folder in self.folderchooserdialog.get_filenames():
-                self.scan(folder)
+            folders = self.folderchooserdialog.get_filenames()
+            self.scan(folders)
 
     def on_button_apply_clicked(self, *args):
         """
@@ -316,7 +316,7 @@ class JankisWindow(GladeWindow):
             getattr(self, w, ).set_sensitive(not self.scanning)
         self.button_stop.set_sensitive(self.scanning)
 
-    def scan(self, folder):
+    def scan(self, folders):
         """
         Start a scan in given folder.
         """
@@ -324,7 +324,7 @@ class JankisWindow(GladeWindow):
         self.scanning = True
         gobject.timeout_add(100, self.update_progress)
         minsize = self.get_file_size()
-        self.scan_folder(folder, minsize, self.follow_links)
+        self.scan_folders(folders, minsize, self.follow_links)
 
     def add_file(self, filename):
         """
@@ -360,7 +360,7 @@ class JankisWindow(GladeWindow):
             self.apply_frame.hide()
 
     @threaded
-    def scan_folder(self, folder, minimal_size=0, follow_links=False):
+    def scan_folders(self, folders, minimal_size=0, follow_links=False):
         """
         Actually do the scanning, in another thread.
         """
@@ -369,12 +369,12 @@ class JankisWindow(GladeWindow):
         self.status('Walking...')
         start = time.time()
         self.files_scanned = 0
-        files = walk(folder, minimal_size, follow_links)
+        files = walk(folders, minimal_size, follow_links)
         self.files_to_scan = len(list(files))
         print('walked in %.3ss' % (time.time()-start))
         self.status('Scanning...')
         start = time.time()
-        matches = scan(folder, minimal_size, follow_links,
+        matches = scan(folders, minimal_size, follow_links,
             add_file_callback=self.add_file,
             add_match_callback=self.scanned_file,
         )
@@ -402,7 +402,8 @@ class JankisWindow(GladeWindow):
             self.progressbar.set_text('')
             self.progressbar.set_fraction(0)
             return False
-        if self.files_scanned and (self.files_scanned != self.files_to_scan):
+        if self.files_scanned and self.files_to_scan and (
+                self.files_scanned != self.files_to_scan):
             self.progressbar.set_fraction(float(self.files_scanned) / self.files_to_scan)
             self.progressbar.set_text('%d/%d' % (self.files_scanned, self.files_to_scan))
         else:

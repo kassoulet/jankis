@@ -85,6 +85,8 @@ def _walk(top, topdown=True, onerror=None, follow_links=False):
             link_abs = abspath(join(top, os.readlink(path)))
             if not link_abs.startswith(top_abs + os.sep):
                 continue
+        if '.gvfs' in name: # FIXME
+            continue
         for x in _walk(path, topdown, onerror, follow_links=follow_links):
             yield x
     if not topdown:
